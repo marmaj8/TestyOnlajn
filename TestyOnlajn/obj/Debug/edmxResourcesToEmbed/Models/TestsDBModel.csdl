@@ -1,0 +1,146 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Schema Namespace="TestyOnlineModel" Alias="Self" annotation:UseStrongSpatialTypes="false" xmlns:annotation="http://schemas.microsoft.com/ado/2009/02/edm/annotation" xmlns:customannotation="http://schemas.microsoft.com/ado/2013/11/edm/customannotation" xmlns="http://schemas.microsoft.com/ado/2009/11/edm">
+  <EntityType Name="answers">
+    <Key>
+      <PropertyRef Name="id" />
+    </Key>
+    <Property Name="id" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+    <Property Name="answer" Type="String" MaxLength="1000" FixedLength="false" Unicode="true" Nullable="false" />
+    <Property Name="correct" Type="Boolean" Nullable="false" />
+    <Property Name="question" Type="Int32" Nullable="false" />
+    <NavigationProperty Name="questions" Relationship="Self.FK__answers__questio__1B0907CE" FromRole="answers" ToRole="questions" />
+  </EntityType>
+  <EntityType Name="questions">
+    <Key>
+      <PropertyRef Name="id" />
+    </Key>
+    <Property Name="id" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+    <Property Name="question" Type="String" MaxLength="1000" FixedLength="false" Unicode="true" Nullable="false" />
+    <Property Name="answers_number" Type="Int32" Nullable="false" />
+    <Property Name="test" Type="Int32" Nullable="false" />
+    <NavigationProperty Name="answers" Relationship="Self.FK__answers__questio__1B0907CE" FromRole="questions" ToRole="answers" />
+    <NavigationProperty Name="tests" Relationship="Self.FK__questions__test__173876EA" FromRole="questions" ToRole="tests" />
+  </EntityType>
+  <EntityType Name="results">
+    <Key>
+      <PropertyRef Name="id" />
+    </Key>
+    <Property Name="id" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+    <Property Name="result" Type="Int32" Nullable="false" />
+    <Property Name="examinee" Type="Int32" Nullable="false" />
+    <Property Name="test" Type="Int32" Nullable="false" />
+    <NavigationProperty Name="UserLogin" Relationship="Self.FK__results__test__1ED998B2" FromRole="results" ToRole="UserLogin" />
+    <NavigationProperty Name="tests" Relationship="Self.FK__results__test__1FCDBCEB" FromRole="results" ToRole="tests" />
+  </EntityType>
+  <EntityType Name="tests">
+    <Key>
+      <PropertyRef Name="id" />
+    </Key>
+    <Property Name="id" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+    <Property Name="name" Type="String" MaxLength="100" FixedLength="false" Unicode="true" Nullable="false" />
+    <Property Name="descript" Type="String" MaxLength="1000" FixedLength="false" Unicode="true" />
+    <Property Name="author" Type="Int32" Nullable="false" />
+    <NavigationProperty Name="questions" Relationship="Self.FK__questions__test__173876EA" FromRole="tests" ToRole="questions" />
+    <NavigationProperty Name="results" Relationship="Self.FK__results__test__1FCDBCEB" FromRole="tests" ToRole="results" />
+    <NavigationProperty Name="UserLogin" Relationship="Self.FK__tests__author__1367E606" FromRole="tests" ToRole="UserLogin" />
+  </EntityType>
+  <EntityType Name="UserLogin">
+    <Key>
+      <PropertyRef Name="Id" />
+    </Key>
+    <Property Name="Id" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+    <Property Name="UserName" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
+    <Property Name="UserPassword" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
+    <Property Name="UserEmail" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
+    <Property Name="UserRole" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
+    <NavigationProperty Name="results" Relationship="Self.FK__results__test__1ED998B2" FromRole="UserLogin" ToRole="results" />
+    <NavigationProperty Name="tests" Relationship="Self.FK__tests__author__1367E606" FromRole="UserLogin" ToRole="tests" />
+  </EntityType>
+  <Association Name="FK__answers__questio__1B0907CE">
+    <End Role="questions" Type="Self.questions" Multiplicity="1" />
+    <End Role="answers" Type="Self.answers" Multiplicity="*" />
+    <ReferentialConstraint>
+      <Principal Role="questions">
+        <PropertyRef Name="id" />
+      </Principal>
+      <Dependent Role="answers">
+        <PropertyRef Name="question" />
+      </Dependent>
+    </ReferentialConstraint>
+  </Association>
+  <Association Name="FK__questions__test__173876EA">
+    <End Role="tests" Type="Self.tests" Multiplicity="1" />
+    <End Role="questions" Type="Self.questions" Multiplicity="*" />
+    <ReferentialConstraint>
+      <Principal Role="tests">
+        <PropertyRef Name="id" />
+      </Principal>
+      <Dependent Role="questions">
+        <PropertyRef Name="test" />
+      </Dependent>
+    </ReferentialConstraint>
+  </Association>
+  <Association Name="FK__results__test__1ED998B2">
+    <End Role="UserLogin" Type="Self.UserLogin" Multiplicity="1" />
+    <End Role="results" Type="Self.results" Multiplicity="*" />
+    <ReferentialConstraint>
+      <Principal Role="UserLogin">
+        <PropertyRef Name="Id" />
+      </Principal>
+      <Dependent Role="results">
+        <PropertyRef Name="examinee" />
+      </Dependent>
+    </ReferentialConstraint>
+  </Association>
+  <Association Name="FK__results__test__1FCDBCEB">
+    <End Role="tests" Type="Self.tests" Multiplicity="1" />
+    <End Role="results" Type="Self.results" Multiplicity="*" />
+    <ReferentialConstraint>
+      <Principal Role="tests">
+        <PropertyRef Name="id" />
+      </Principal>
+      <Dependent Role="results">
+        <PropertyRef Name="test" />
+      </Dependent>
+    </ReferentialConstraint>
+  </Association>
+  <Association Name="FK__tests__author__1367E606">
+    <End Role="UserLogin" Type="Self.UserLogin" Multiplicity="1" />
+    <End Role="tests" Type="Self.tests" Multiplicity="*" />
+    <ReferentialConstraint>
+      <Principal Role="UserLogin">
+        <PropertyRef Name="Id" />
+      </Principal>
+      <Dependent Role="tests">
+        <PropertyRef Name="author" />
+      </Dependent>
+    </ReferentialConstraint>
+  </Association>
+  <EntityContainer Name="TestyOnlineEntities" annotation:LazyLoadingEnabled="true">
+    <EntitySet Name="answers" EntityType="Self.answers" />
+    <EntitySet Name="questions" EntityType="Self.questions" />
+    <EntitySet Name="results" EntityType="Self.results" />
+    <EntitySet Name="tests" EntityType="Self.tests" />
+    <EntitySet Name="UserLogin" EntityType="Self.UserLogin" />
+    <AssociationSet Name="FK__answers__questio__1B0907CE" Association="Self.FK__answers__questio__1B0907CE">
+      <End Role="questions" EntitySet="questions" />
+      <End Role="answers" EntitySet="answers" />
+    </AssociationSet>
+    <AssociationSet Name="FK__questions__test__173876EA" Association="Self.FK__questions__test__173876EA">
+      <End Role="tests" EntitySet="tests" />
+      <End Role="questions" EntitySet="questions" />
+    </AssociationSet>
+    <AssociationSet Name="FK__results__test__1ED998B2" Association="Self.FK__results__test__1ED998B2">
+      <End Role="UserLogin" EntitySet="UserLogin" />
+      <End Role="results" EntitySet="results" />
+    </AssociationSet>
+    <AssociationSet Name="FK__results__test__1FCDBCEB" Association="Self.FK__results__test__1FCDBCEB">
+      <End Role="tests" EntitySet="tests" />
+      <End Role="results" EntitySet="results" />
+    </AssociationSet>
+    <AssociationSet Name="FK__tests__author__1367E606" Association="Self.FK__tests__author__1367E606">
+      <End Role="UserLogin" EntitySet="UserLogin" />
+      <End Role="tests" EntitySet="tests" />
+    </AssociationSet>
+  </EntityContainer>
+</Schema>
