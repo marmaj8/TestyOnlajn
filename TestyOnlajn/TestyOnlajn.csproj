@@ -203,9 +203,13 @@
       <DependentUpon>TestsDBModel.tt</DependentUpon>
     </Compile>
     <Compile Include="Models\QuestionSend.cs" />
+    <Compile Include="Models\QuestionsUpdate.cs" />
     <Compile Include="Models\results.cs">
       <DependentUpon>TestsDBModel.tt</DependentUpon>
     </Compile>
+    <Compile Include="Models\TestCreate.cs" />
+    <Compile Include="Models\TestQuestionsUpdate.cs" />
+    <Compile Include="Models\TestQuestionUpdate.cs" />
     <Compile Include="Models\tests.cs">
       <DependentUpon>TestsDBModel.tt</DependentUpon>
     </Compile>
@@ -225,6 +229,7 @@
       <DependentUpon>TestsDBModel.edmx</DependentUpon>
     </Compile>
     <Compile Include="Models\TestSend.cs" />
+    <Compile Include="Models\TestUpdateDesc.cs" />
     <Compile Include="Models\UserLogin.cs">
       <DependentUpon>TestsDBModel.tt</DependentUpon>
     </Compile>

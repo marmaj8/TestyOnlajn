@@ -7,9 +7,9 @@ namespace TestyOnlajn.Models
 {
     public class AnswerSend
     {
-        int Id { get; }
-        string Text { get; }
-        Boolean Correct { get; }
+        public int Id { get; set; }
+        public string Text { get; set; }
+        public Boolean Correct { get; set; }
 
         public AnswerSend(int id, string txt, Boolean correct = false)
         {

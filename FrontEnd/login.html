@@ -1,75 +1,84 @@
 <!DOCTYPE html>
 <html>
+
 <head>
     <meta charset="utf-8" />
     <title></title>
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css"
+        integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
 
     <script src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
-    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"
+        integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q"
+        crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"
+        integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl"
+        crossorigin="anonymous"></script>
     <script src="js/vue.js"> </script>
+    <script src="config.js"> </script>
 </head>
+
 <body>
     <div id="app">
-    <div class="container">
-        <div class="row justify-content-center align-items-center" style="height:100vh">
-            <div class="col-4">
-                <div class="card">
-                    <div class="card-body">
+        <div class="container">
+            <div class="row justify-content-center align-items-center" style="height:100vh">
+                <div class="col-4">
+                    <div class="card">
+                        <div class="card-body">
                             <div class="form-group">
                                 <p>Email</p>
                                 <input type="text" class="form-control" name="username" v-model="loginData.username">
                             </div>
                             <div class="form-group">
                                 <p>Hasło</p>
-                                <input type="password" class="form-control" name="password" v-model="loginData.password">
+                                <input type="password" class="form-control" name="password"
+                                    v-model="loginData.password">
                             </div>
-                            <button type="button" id="sendlogin" class="btn btn-primary" v-on:click="login">login {{test}}</button>
+                            <button type="button" id="sendlogin" class="btn btn-primary" v-on:click="login">login
+                                {{test}}</button>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
-</div>
 
 
-<script>
-    var app = new Vue({
-        el: '#app',
-        data: {
-            loginData: {
-                username: "admin@gmail.com",
-                password: "123456",
-                grant_type: "password",
-                timeout: 5000
+    <script>
+        var app = new Vue({
+            el: '#app',
+            data: {
+                loginData: {
+                    username: "admin@gmail.com",
+                    password: "123456",
+                    grant_type: "password"
+                },
+                test: ''
             },
-            test: ''
-        },
-        created: function () {
-        },
-        methods: {
-            login: function () {
-                var self = this;
+            created: function () {
+            },
+            methods: {
+                login: function () {
+                    var self = this;
 
-                jQuery.ajax({
-                    method: 'POST',
-                    url: 'http://localhost:50410/token',
-                    headers: { "Accept": "application/json" },
-                    contentType: "application/x-www-form-url; charset=urf-8",
-                    data: self.loginData,
-                })
-                    .done(function (res) {
-                        console.log(res); //dostaliśmy odpowiedź z serwera, wypisujemy ją
-                        sessionStorage.setItem(tokenKey, res.access_token);
-                    })
-                    .fail(function () {
+                    $.ajax({
+                        url: backend + "/TOKEN",
+                        type: "POST",
+                        data: self.loginData,
+                        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                        timeout: 5000
+
+
+                    }).done(function (res) {
+                        sessionStorage.setItem("tokenKey", res.access_token);
+                        console.log(res);
+                    }).fail(function () {
                         alert("Wystąpił błąd w połączeniu");
                     })
+                }
             }
-        }
-    });
-</script>
+        });
+    </script>
 </body>
 
 </html>

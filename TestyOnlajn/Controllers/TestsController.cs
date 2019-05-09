@@ -16,105 +16,256 @@ namespace TestyOnlajn.Controllers
 
         [HttpGet]
         [Authorize]
-        public List<Models.TestSend> List()
+        public IHttpActionResult List()
         {
-            List<Models.TestSend> tests = new List<Models.TestSend>();
-
-            foreach (Models.tests test in db.tests)
+            try
             {
-                tests.Add(new Models.TestSend(test.id, test.name, test.descript, test.UserLogin.UserName));
+                User = System.Web.HttpContext.Current.User;
+                int user;
+                int.TryParse(((ClaimsIdentity)User.Identity).Claims.First(c => c.Type == "Id").Value, out user);
+                Boolean isY;
+
+                List<Models.TestSend> tests = new List<Models.TestSend>();
+
+                foreach (Models.tests test in db.tests)
+                {
+                    if (user == test.author)
+                        isY = true;
+                    else
+                        isY = false;
+                    int points = 0;
+                    int result = -1;
+                    foreach (Models.questions q in test.questions)
+                    {
+                        points += q.answers_number;
+                    }
+
+                    var results = test.results.Where(r => r.examinee == user);
+                    if (results.Count() > 0)
+                    {
+                        result = results.First().result;
+                    }
+
+                    tests.Add(new Models.TestSend(test.id, test.name, test.descript, test.UserLogin.UserName, test.questions.Count(), points, result, isY));
+                }
+
+                return Ok(tests);
             }
-
-            return tests;
-        }
-
-        [HttpPost]
-        [Authorize]
-        public int Create(string name, string desc)
-        {
-            User = System.Web.HttpContext.Current.User;
-            Models.tests test = new Models.tests();
-            test.name = name;
-            test.descript = desc;
-            //test.author = db.UserLogin.First(u => u.UserEmail == User.Identity.Name).Id;
-
-            int author;
-            int.TryParse(((ClaimsIdentity)User.Identity).Claims.First(c => c.Type == "Id").Value, out author);
-            test.author = author;
-
-            db.tests.Add(test);
-            db.SaveChanges();
-
-            return test.id;
-        }
-
-        [HttpPost]
-        [Authorize]
-        public string Update(int id, string name, string desc)
-        {
-            Models.tests test = db.tests.First(t => t.id == id);
-            
-            int author;
-            int.TryParse(((ClaimsIdentity)User.Identity).Claims.First(c => c.Type == "Id").Value, out author);
-
-            if (author == test.author)
+            catch
             {
-                if (name != null)
-                    test.name = name;
-                if (desc != null)
-                    test.descript = desc;
+                return InternalServerError();
+            }
+        }
 
+        [HttpPost]
+        [Authorize]
+        public IHttpActionResult Create(Models.TestCreate data)
+        {
+            try
+            {
+                User = System.Web.HttpContext.Current.User;
+                Models.tests test = new Models.tests();
+                test.name = data.Name;
+                test.descript = data.Desc;
+
+                int author;
+                int.TryParse(((ClaimsIdentity)User.Identity).Claims.First(c => c.Type == "Id").Value, out author);
+                test.author = author;
+
+                db.tests.Add(test);
                 db.SaveChanges();
 
-                return "Zmodyfikowano Opis Testu";
+                return Ok(test.id);
             }
-            return "Nie możesz edytowac tego testu";
+            catch
+            {
+                return InternalServerError();
+            }
+        }
+
+        [HttpPost]
+        [Authorize]
+        public IHttpActionResult UpdateDesc(Models.TestUpdateDesc data)
+        {
+            try
+            {
+                Models.tests test = db.tests.First(t => t.id == data.Id);
+
+                int author;
+                int.TryParse(((ClaimsIdentity)User.Identity).Claims.First(c => c.Type == "Id").Value, out author);
+
+                if (author == test.author)
+                {
+                    if (data.Name != null)
+                        test.name = data.Name;
+                    if (data.Desc != null)
+                        test.descript = data.Desc;
+
+                    db.SaveChanges();
+                    return Ok();
+                }
+                else
+                    return Unauthorized();
+            }
+            catch
+            {
+                return InternalServerError();
+            }
+        }
+
+        [HttpPost]
+        [Authorize]
+        public IHttpActionResult UpdateQuestions(Models.TestQuestionUpdate data)
+        {
+            try
+            {
+                Models.tests test = db.tests.First(t => t.id == data.TestId);
+
+                int author;
+                int.TryParse(((ClaimsIdentity)User.Identity).Claims.First(c => c.Type == "Id").Value, out author);
+
+                if (author == test.author)
+                {
+                    List<Models.questions> qDelete;
+                    List<Models.answers> aDelete = new List<Models.answers>();
+
+                    qDelete = test.questions.ToList();
+                    foreach (Models.questions q in qDelete)
+                    {
+                        foreach (Models.answers a in q.answers)
+                        {
+                            aDelete.Add(a);
+                        }
+                    }
+                    foreach (Models.answers a in aDelete)
+                    {
+                        db.answers.Remove(a);
+                    }
+                    foreach (Models.questions q in qDelete)
+                    {
+                        db.questions.Remove(q);
+                    }
+
+
+
+                    foreach (Models.QuestionUpdate q in data.Questions.OrderBy(q => q.QuestionId))
+                    {
+                        Models.questions question = new Models.questions();
+                        question.answers_number = q.CorrectAnswers;
+                        question.question = q.Text;
+                        question.answers = new List<Models.answers>();
+
+                        foreach (Models.AnswerSend a in q.Answers.OrderBy(a => a.Id))
+                        {
+                            Models.answers answer = new Models.answers();
+                            answer.answer = a.Text;
+                            answer.correct = a.Correct;
+
+                            question.answers.Add(answer);
+                        }
+                        test.questions.Add(question);
+                    }
+
+                    db.SaveChanges();
+                    return Ok();
+                }
+                else
+                    return Unauthorized();
+            }
+            catch
+            {
+                return InternalServerError();
+            }
         }
 
         [HttpGet]
-        //[Authorize]
-        public Models.TestSend Get(int id)
+        [Authorize]
+        public IHttpActionResult Get(int id)
         {
-            var test = db.tests.First(t => t.id == id);
-            int questions = 0;
-            int points = 0;
-
-            foreach(Models.questions question in db.questions.Where(q => q.test == id))
+            try
             {
-                int answers = question.answers_number;
-                foreach (Models.answers answer in db.answers.Where(a => a.question == question.id))
-                {
-                    if (answer.correct == true)
-                    {
-                        points++;
-                        answers--;
-                        if (answers == 0)
-                            break;
-                    }
-                }
-                questions++;
-            }
+                int user;
+                int.TryParse(((ClaimsIdentity)User.Identity).Claims.First(c => c.Type == "Id").Value, out user);
 
-            return new Models.TestSend(id, test.name, test.descript, test.UserLogin.UserName, questions, points);
+                var test = db.tests.First(t => t.id == id);
+                int questions = 0;
+                int points = 0;
+
+                Boolean isY;
+                if (user == test.author)
+                    isY = true;
+                else
+                    isY = false;
+                int result = -1;
+                foreach (Models.questions q in test.questions)
+                {
+                    points += q.answers_number;
+                }
+
+                var results = test.results.Where(r => r.examinee == user);
+                if (results.Count() > 0)
+                {
+                    result = results.First().result;
+                }
+
+                return Ok(new Models.TestSend(id, test.name, test.descript, test.UserLogin.UserName, questions, points, result, isY));
+            }
+            catch
+            {
+                return InternalServerError();
+            }
         }
 
         [HttpPost]
         [Authorize]
-        public string Delete(int id)
+        public IHttpActionResult Delete(int id)
         {
-            Models.tests test = db.tests.First(t => t.id == id);
-
-            int author;
-            int.TryParse(((ClaimsIdentity)User.Identity).Claims.First(c => c.Type == "Id").Value, out author);
-
-            if (author == test.author)
+            try
             {
-                db.tests.Remove(test);
-                db.SaveChanges();
+                Models.tests test = db.tests.First(t => t.id == id);
 
-                return "Usunięto test nr " + id;
+                int author;
+                int.TryParse(((ClaimsIdentity)User.Identity).Claims.First(c => c.Type == "Id").Value, out author);
+
+                if (author == test.author)
+                {
+                    var results = test.results;
+                    foreach (Models.results result in results)
+                    {
+                        db.results.Remove(result);
+                    }
+
+                    List<Models.questions> qDelete = new List<Models.questions>();
+                    List<Models.answers> aDelete = new List<Models.answers>();
+
+                    foreach (Models.questions question in test.questions)
+                    {
+                        foreach (Models.answers answer in question.answers)
+                        {
+                            aDelete.Add(answer);
+                        }
+                        qDelete.Add(question);
+                    }
+
+                    foreach (Models.answers answer in aDelete)
+                    {
+                        db.answers.Remove(answer);
+                    }
+                    foreach (Models.questions question in qDelete)
+                    {
+                        db.questions.Remove(question);
+                    }
+                    db.tests.Remove(test);
+                    db.SaveChanges();
+                    return Ok();
+                }
+                else
+                    return Unauthorized();
             }
-            return "Nie możesz usunąć tego testu";
+            catch
+            {
+                return InternalServerError();
+            }
         }
     }
 }

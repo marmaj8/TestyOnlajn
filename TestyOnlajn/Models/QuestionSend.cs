@@ -7,10 +7,10 @@ namespace TestyOnlajn.Models
 {
     public class QuestionSend
     {
-        int Id { get; }
-        string Text { get; }
-        int AnswersCount { get; }
-        List<AnswerSend> Answers { get; }
+        public int Id { get; set; }
+        public string Text { get; set; }
+        public int AnswersCount { get; set; }
+        public List<AnswerSend> Answers { get; set; }
 
         public QuestionSend(int id, string txt, int count, List<AnswerSend> answers)
         {

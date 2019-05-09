@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8" />
+    <title>Edycja Testu</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css"
+        integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+
+    <script src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"
+        integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q"
+        crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"
+        integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl"
+        crossorigin="anonymous"></script>
+    <script src="js/vue.js"> </script>
+    <script src="config.js"> </script>
+    <script src="js/qEdit.js"></script>
+</head>
+
+<body>
+    <div id="app">
+        <div class="container">
+
+            <h3>Edycja testu nr: {{testId}}</h3>
+            <div id="testDesc">
+                <div class="input-group mb-3">
+                    <div class="input-group-prepend">
+                        <span class="input-group-text" id="inputGroup-sizing-default">Nazwa</span>
+                    </div>
+                    <input type="text" class="form-control" aria-label="Sizing example input"
+                        aria-describedby="inputGroup-sizing-default" v-model="testName">
+                </div>
+
+                <div class="input-group mb-3">
+                    <div class="input-group-prepend">
+                        <span class="input-group-text" id="inputGroup-sizing-default">Opis</span>
+                    </div>
+                    <textarea class="form-control rounded-0" rows="5" maxlength="1000" resize="false"
+                        style="resize:none" v-model="testDescription"></textarea>
+                </div>
+                <button class="btn btn-outline-secondary" type="button" id="button-addon2"
+                    v-on:click="changeTestDesc()">Ustaw Nazwe i Opis</button>
+                <span v-if="changeStatus.type==0"
+                    v-bind:style="{color: changeStatus.color}">{{changeStatus.status}}</span>
+            </div>
+
+            <div id="questionsControl">
+                <ul class="list-group">
+                    <li class="list-group-item disabled" aria-disabled="true" v-for="question in questions">
+                        <question-card :question="question"></question-card>
+
+                        <table class="table">
+                            <th style="width: 50px">Prawda</th>
+                            <th>Treść odpowiedzi</th>
+                            <th style="width: 50px"></th>
+
+                            <tr v-for="answer in question.answers">
+                                <td><input type="checkbox" aria-label="Checkbox for following text input"
+                                        class="align-middle" v-model="answer.correct"></td>
+                                <td>
+                                    <textarea class="form-control rounded-0" rows="2" maxlength="1000" resize="false"
+                                        style="resize:none" v-model="answer.answer"></textarea></td>
+                                <td><button class="btn btn-outline-secondary" type="button" id="button-addon2"
+                                        v-on:click="removeAnswer(question.number, answer.number)">Usuń</button></td>
+                            </tr>
+                            <tr>
+                                <td></td>
+                                <td></td>
+                                <td><button class="btn btn-outline-secondary" type="button" id="button-addon2"
+                                        v-on:click="addAnswer(question.number)">Dodaj</button></td>
+                            </tr>
+                        </table>
+                        <button class="btn btn-outline-secondary" type="button" id="button-addon2"
+                            v-on:click="removeQuestion(question.number)">Usuń Pytanie</button>
+                    </li>
+
+                    <li class="list-group-item disabled" aria-disabled="true">
+                        <button class="btn btn-outline-secondary" type="button" id="button-addon2"
+                            v-on:click="addQuestion()">Dodaj Pytanie</button>
+                    </li>
+                </ul>
+                <button class="btn btn-outline-secondary" type="button" id="button-addon2"
+                    v-on:click="saveQuestions()">Zapisz Pytania</button>
+                <span v-if="changeStatus.type==1"
+                    v-bind:style="{color: changeStatus.color}">{{changeStatus.status}}</span>
+            </div>
+            <button class="btn btn-outline-secondary" type="button" id="button-addon2"
+                v-on:click="deleteTest()">Usuń test</button>
+                <span v-if="changeStatus.type==-2"
+                    v-bind:style="{color: changeStatus.color}">{{changeStatus.status}}</span>
+
+        </div>
+    </div>
+
+
+
+    <script>
+        var app = new Vue({
+            el: '#app',
+            components: {
+                'question-card': qEdit,
+            },
+            data: {
+                testId: 1,
+                testName: '',
+                testDescription: '',
+                questions: [
+                    /*
+                    {
+                        number: 0, question: 'pytanie 1', answersCount: 1, answers: [
+                            { number: 0, answer: 'aa', correct: false },
+                            { number: 1, answer: 'bb', correct: true },
+                            { number: 2, answer: 'cc', correct: false },
+                        ]
+                    },
+                    {
+                        number: 1, question: 'pytanie 2', answersCount: 1, answers: [
+                            { number: 0, answer: 'aa', correct: false },
+                            { number: 1, answer: 'bb', correct: true },
+                        ]
+                    }
+                    */
+                ],
+                changeStatus: { type: 0, id: 1, status: '', color: 'black' },
+                newQuestion: ''
+            },
+            created: function () {
+                var self = this;
+                self.testId = self.getQueryVariable("id")
+                $.ajax({
+                    type: "GET",
+                    url: backend + "/api/tests/Get/" + self.testId,
+                    headers: {
+                        'Authorization': `Bearer ${sessionStorage.getItem("tokenKey")}`,
+                        'Access-Control-Allow-Origin': '*'
+                    },
+                    timeout: 5000,
+
+
+                }).done(function (result) {
+                    self.testName = result.Name;
+                    self.testDescription = result.Description;
+
+                    $.ajax({
+                    type: "GET",
+                    url: backend + "/api/questions/List/" + self.testId,
+                    headers: {
+                        'Authorization': `Bearer ${sessionStorage.getItem("tokenKey")}`,
+                        'Access-Control-Allow-Origin': '*'
+                    },
+                    timeout: 5000,
+
+
+                    }).done(function (data) {
+                        var qNumber = 0;
+
+                        //for (var i=0; i < data.length; i++)
+                        data.forEach(q => {
+                            //var q = data[i];
+                            
+                            var qtemp = { number: qNumber, question: q.Text, answersCount: q.AnswersCount, answers: []}
+                            var aNumber = 0;
+
+                            q.Answers.forEach(a =>{
+                                var atemp = { number: aNumber, answer: a.Text, correct: a.Correct };
+                                qtemp.answers.push(atemp);
+                                aNumber++;
+                            })
+                            self.questions.push(qtemp);
+                            qNumber++;
+                        })
+                    }).fail(function (jqXHR, textStatus, errorThrown) {
+                        console.log(jqXHR)
+                    })
+                }).fail(function (jqXHR, textStatus, errorThrown) {
+                    console.log(jqXHR)
+                })
+            },
+            methods: {
+                getQueryVariable: function (variable) {
+                    var query = window.location.search.substring(1);
+                    var vars = query.split("&");
+                    for (var i = 0; i < vars.length; i++) {
+                        var pair = vars[i].split("=");
+                        if (pair[0] == variable) { return pair[1]; }
+                    }
+                    return (false);
+                },
+                changeChangeStatus: function (type, id, status) {
+                    this.changeStatus.type = type;
+                    this.changeStatus.id = id;
+                    if (status == 0) {
+                        this.changeStatus.color = 'black';
+                        this.changeStatus.status = 'Przetważanie Żądania'
+                    }
+                    else if (status == 1) {
+                        this.changeStatus.color = 'green';
+                        this.changeStatus.status = 'Zmiany zostały zapisane'
+                    }
+                    else if (status == -1) {
+                        this.changeStatus.color = 'red';
+                        this.changeStatus.status = 'Wystąpił błąd podczas przetwarzania żądania'
+                    }
+                },
+                changeTestDesc: function () {
+                    var self = this;
+
+                    var dataJSON = { "name": "test" }
+
+
+                    self.changeChangeStatus(0, 0, 0);
+                    $.ajax({
+                        type: "POST",
+                        url: backend + "/api/tests/UpdateDesc",
+                        headers: {
+                            'Authorization': `Bearer ${sessionStorage.getItem("tokenKey")}`,
+                            'Access-Control-Allow-Origin': '*'
+                        },
+                        timeout: 5000,
+
+                        data: JSON.stringify({ "Id": self.testId, "Name": self.testName, "Desc": self.testDescription }),
+                        contentType: 'application/json; charset=utf-8',
+                        dataType: 'json'
+
+                    }).done(function () {
+                        self.changeChangeStatus(0, -1, 1);
+                    }).fail(function (jqXHR, textStatus, errorThrown) {
+                        console.log(jqXHR);
+                        console.log(textStatus);
+                        console.log(errorThrown);
+                        self.changeChangeStatus(0, -1, -1);
+                    })
+                },
+                addQuestion: function () {
+                    var question = { number: this.questions.length, question: "", answersCoun: 0, answers: [] };
+                    this.questions.push(question);
+                },
+                removeQuestion: function (question) {
+                    this.questions.forEach(element => {
+                        if (element.number > question) element.number--;
+                    });
+                    this.questions.splice(question, 1);
+                },
+                addAnswer: function (id) {
+                    var answer = { number: this.questions[id].length, answer: "", correct: false };
+                    this.questions[id].answers.push(answer);
+                },
+                removeAnswer: function (question, answer) {
+                    this.questions[question].answers.forEach(element => {
+                        if (element.number > answer) element.number--;
+                    });
+                    this.questions[question].answers.splice(answer, 1);
+                },
+                saveQuestions: function () {
+                    var self = this;
+                    self.changeChangeStatus(1, -1, 0);
+
+                    var questions = [];
+                    self.questions.forEach(q =>{
+                        var answers = [];
+                        var correct = 0;
+                        q.answers.forEach(a =>{
+                            var answer = { Id: a.number, Text: a.answer, Correct: a.correct }
+                            answers.push(answer);
+                            if (answer.correct == true)
+                                correct++;
+                        })
+                        var question = { TestId: this.testId, QuestionId: q.number, CorrectAnswers: correct, Answers: answers, Text: q.question }
+                        questions.push(question);
+                    })
+
+                    $.ajax({
+                        type: "POST",
+                        url: backend + "/api/tests/UpdateQuestions",
+                        headers: {
+                            'Authorization': `Bearer ${sessionStorage.getItem("tokenKey")}`,
+                            'Access-Control-Allow-Origin': '*'
+                        },
+                        timeout: 5000,
+
+                        data: JSON.stringify({
+                            "TestId": self.testId,
+                            "Questions": questions
+                        }),
+                        contentType: 'application/json; charset=utf-8',
+                        dataType: 'json'
+                    }).done(function () {
+                        self.changeChangeStatus(1, -1, 1);
+                    }).fail(function (jqXHR, textStatus, errorThrown) {
+                        console.log(jqXHR);
+                        self.changeChangeStatus(1, -1, -1);
+                    })
+
+                },
+                deleteTest: function(){
+                    var self = this;
+                    $.ajax({
+                        type: "POST",
+                        url: backend + "/api/tests/Delete/"+self.testId,
+                        headers: {
+                            'Authorization': `Bearer ${sessionStorage.getItem("tokenKey")}`,
+                            'Access-Control-Allow-Origin': '*'
+                        },
+                        timeout: 5000,
+                    }).done(function () {
+                        self.changeChangeStatus(1, -1, 1);
+                    }).fail(function (jqXHR, textStatus, errorThrown) {
+                        console.log(jqXHR);
+                        self.changeChangeStatus(-2, -1, -1);
+                    })
+                }
+            }
+        });
+    </script>
+</body>
+
+</html>

@@ -16,40 +16,57 @@ namespace TestyOnlajn.Controllers
 
         [HttpPost]
         [Authorize]
-        public int Create(int question, string txt, Boolean correct = false)
+        //public int Create(int question, string txt, Boolean correct = false)
+        public IHttpActionResult Create(Models.AnswerSend data)
         {
-            User = System.Web.HttpContext.Current.User;
-            int user;
-            int.TryParse(((ClaimsIdentity)User.Identity).Claims.First(c => c.Type == "Id").Value, out user);
-            if (db.questions.First(q => q.id == question).tests.UserLogin.Id == user)
+            try
             {
-                Models.answers answer = new Models.answers();
-                answer.question = question;
-                answer.answer = txt;
-                answer.correct = correct;
-                db.answers.Add(answer);
-                db.SaveChanges();
+                User = System.Web.HttpContext.Current.User;
+                int user;
+                int.TryParse(((ClaimsIdentity)User.Identity).Claims.First(c => c.Type == "Id").Value, out user);
+                if (db.questions.First(q => q.id == data.Id).tests.UserLogin.Id == user)
+                {
+                    Models.answers answer = new Models.answers();
+                    answer.question = data.Id;
+                    answer.answer = data.Text;
+                    answer.correct = data.Correct;
+                    db.answers.Add(answer);
+                    db.SaveChanges();
+                    return Ok();
+                }
+                else
+                    return Unauthorized();
             }
-            return -1;
+            catch
+            {
+                return InternalServerError();
+            }
         }
 
         [HttpPost]
         [Authorize]
-        public string Delete(int id)
+        public IHttpActionResult Delete(int id)
         {
-            User = System.Web.HttpContext.Current.User;
-            int user;
-            int.TryParse(((ClaimsIdentity)User.Identity).Claims.First(c => c.Type == "Id").Value, out user);
-
-            Models.answers answer = db.answers.First(q => q.id == id);
-            if (answer.questions.tests.UserLogin.Id == user)
+            try
             {
-                db.answers.Remove(answer);
-                db.SaveChanges();
+                User = System.Web.HttpContext.Current.User;
+                int user;
+                int.TryParse(((ClaimsIdentity)User.Identity).Claims.First(c => c.Type == "Id").Value, out user);
 
-                return "Usunięto odpowiedź nr " + id;
+                Models.answers answer = db.answers.First(q => q.id == id);
+                if (answer.questions.tests.UserLogin.Id == user)
+                {
+                    db.answers.Remove(answer);
+                    db.SaveChanges();
+                    return Ok();
+                }
+                else
+                    return Unauthorized();
             }
-            return "Nie możesz usunąć tej odpowiedzi";
+            catch
+            {
+                return InternalServerError();
+            }
         }
     }
 }
