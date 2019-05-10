@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8" />
+    <title>Edycja Testu</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css"
+        integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+
+    <script src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"
+        integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q"
+        crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"
+        integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl"
+        crossorigin="anonymous"></script>
+    <script src="js/vue.js"> </script>
+    <script src="config.js"> </script>
+    <script src="js/qCard.js"></script>
+    <script src="js/menuBar.js"></script>
+</head>
+
+<body>
+    <div id='app'>
+        <div class="container">
+            <menu-bar></menu-bar>
+
+            <div class="jumbotron jumbotron-fluid">
+                <ul id="questionList" class="list-group">
+                    <li class="list-group-item" v-for="question in questions">
+                        <question-card :question="question"></question-card>
+                    </li>
+                </ul>
+                <button class="btn btn-outline-secondary" type="button" id="button-addon2" v-on:click="sendToCheck()"
+                    :disabled="sended">Wyślij do Oceny</button>
+                <span v-bind:style="{color: changeStatus.color}">{{changeStatus.status}}</span>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        var app = new Vue({
+            el: '#app',
+            components: {
+                'question-card': qCard,
+                'menu-bar': menuBar,
+            },
+            data: {
+                testId: 1,
+                testName: '',
+                testDescription: '',
+                questions: [
+                ],
+                changeStatus: { type: 0, id: 1, status: '', color: 'black' },
+                sended: false
+            },
+            created: function () {
+                var self = this;
+                self.testId = self.getQueryVariable("id")
+                $.ajax({
+                    type: "GET",
+                    url: backend + "/api/questions/ListToDo/" + self.testId,
+                    headers: {
+                        'Authorization': `Bearer ${sessionStorage.getItem("tokenKey")}`,
+                        'Access-Control-Allow-Origin': '*'
+                    },
+                    timeout: 5000,
+
+
+                }).done(function (data) {
+                    var qNumber = 0;
+
+                    data.forEach(q => {
+
+                        var qtemp = { number: qNumber, question: q.Text, answersCount: q.AnswersCount, answers: [], selectedAnswer: -1 }
+                        var aNumber = 0;
+
+                        q.Answers.forEach(a => {
+                            var atemp = { number: aNumber, answer: a.Text, correct: a.Correct };
+                            qtemp.answers.push(atemp);
+                            aNumber++;
+                        })
+                        self.questions.push(qtemp);
+                        qNumber++;
+                    })
+                }).fail(function (jqXHR, textStatus, errorThrown) {
+                    window.location.replace("TestList.html");
+                })
+            },
+            methods: {
+                getQueryVariable: function (variable) {
+                    var query = window.location.search.substring(1);
+                    var vars = query.split("&");
+                    for (var i = 0; i < vars.length; i++) {
+                        var pair = vars[i].split("=");
+                        if (pair[0] == variable) { return pair[1]; }
+                    }
+                    return (false);
+                },
+                changeChangeStatus: function (status) {
+                    if (status == 0) {
+                        this.changeStatus.color = 'black';
+                        this.changeStatus.status = 'Przetważanie Żądania'
+                    }
+                    else if (status == 1) {
+                        this.changeStatus.color = 'green';
+                        this.changeStatus.status = 'Test został wysłany do oceny'
+                    }
+                    else if (status == -1) {
+                        this.changeStatus.color = 'red';
+                        this.changeStatus.status = 'Wystąpił błąd podczas przetwarzania żądania'
+                    }
+                },
+                sendToCheck: function () {
+                    var self = this;
+                    var dataSend = {
+                        'Id': self.testId,
+                        'Questions': []
+                    };
+
+                    self.questions.forEach(q => {
+                        var Answers = [];
+                        var i = 0;
+                        if (q.selectedAnswer != -1) {
+                            Answers.push(q.selectedAnswer);
+                        }
+                        else {
+                            q.answers.forEach(a => {
+                                if (Boolean(a.correct)) {
+                                    Answers.push(i);
+                                }
+                                i++;
+                                console.log(Boolean(a.correct));
+                            })
+                        }
+                        dataSend.Questions.push({ 'Answers': Answers });
+                    })
+
+                    console.log(JSON.stringify(dataSend));
+                                        $.ajax({
+                                            type: "POST",
+                                            url: backend + "/api/Questions/Rate",
+                                            headers: {
+                                                'Authorization': `Bearer ${sessionStorage.getItem("tokenKey")}`,
+                                                'Access-Control-Allow-Origin': '*'
+                                            },
+                                            timeout: 5000,
+                    
+                                            data: JSON.stringify(dataSend),
+                                            contentType: 'application/json; charset=utf-8',
+                                            dataType: 'json'
+                                        }).done(function (result) {
+                                            console.log(result);
+                                            self.changeStatus.color = 'green';
+                                            self.changeStatus.status = 'Twój wynik to: ' + result;
+                                        }).fail(function (jqXHR, textStatus, errorThrown) {
+                                            console.log(jqXHR);
+                                            self.changeChangeStatus(-1);
+                                            self.sended = false;
+                                        })
+                }
+            }
+        });
+    </script>
+</body>
+
+</html>

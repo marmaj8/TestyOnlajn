@@ -20,14 +20,52 @@ namespace TestyOnlajn.Models
         {
             try
             {
+                User = System.Web.HttpContext.Current.User;
+                int user;
+                int.TryParse(((ClaimsIdentity)User.Identity).Claims.First(c => c.Type == "Id").Value, out user);
+                var test = db.tests.First(t => t.id == id);
+
+                if (test.author != user)
+                {
+                    return Unauthorized();
+                }
+
                 List<Models.QuestionSend> questionsSend = new List<QuestionSend>();
 
-                foreach (Models.questions question in db.questions.Where(q => q.test == id))
+                foreach (Models.questions question in test.questions)
                 {
                     List<Models.AnswerSend> answers = new List<AnswerSend>();
                     foreach (Models.answers answer in db.answers.Where(a => a.question == question.id))
                     {
                         answers.Add(new Models.AnswerSend(answer.id, answer.answer, answer.correct));
+                    }
+                    questionsSend.Add(new Models.QuestionSend(question.id, question.question, question.answers_number, answers));
+                }
+
+                return Ok(questionsSend);
+            }
+            catch
+            {
+                return InternalServerError();
+            }
+        }
+
+        [HttpGet]
+        [Authorize]
+        public IHttpActionResult ListToDo(int id)
+        {
+            try
+            {
+                var test = db.tests.First(t => t.id == id);
+
+                List<Models.QuestionSend> questionsSend = new List<QuestionSend>();
+
+                foreach (Models.questions question in test.questions)
+                {
+                    List<Models.AnswerSend> answers = new List<AnswerSend>();
+                    foreach (Models.answers answer in db.answers.Where(a => a.question == question.id))
+                    {
+                        answers.Add(new Models.AnswerSend(answer.id, answer.answer, false));
                     }
                     questionsSend.Add(new Models.QuestionSend(question.id, question.question, question.answers_number, answers));
                 }
@@ -69,7 +107,7 @@ namespace TestyOnlajn.Models
 
         [HttpPost]
         [Authorize]
-        public IHttpActionResult Rate(int id, string answers)
+        public IHttpActionResult Rate(Models.QuestionsToCheck data)
         {
             try
             {
@@ -77,28 +115,35 @@ namespace TestyOnlajn.Models
                 int user;
                 int.TryParse(((ClaimsIdentity)User.Identity).Claims.First(c => c.Type == "Id").Value, out user);
 
+                var results = db.results.Where(r => r.test == data.Id && r.examinee == user);
+                if (results.Count() > 0)
+                {
+                    return Unauthorized();
+                }
 
                 int points = 0;
 
-                var questions = db.tests.First(t => t.id == id).questions;
-
-                answers = answers.ToLower();
-                string[] answers_list = answers.Split(':');
+                var test = db.tests.First(t => t.id == data.Id);
+                var questions = test.questions;
 
                 int i = 0;
-                foreach (string ans in answers_list)
+                foreach(Models.QuestionToCheck question in data.Questions)
                 {
-                    foreach(char c in ans)
+                    if (questions.ElementAt(i).answers_number == question.Answers.Count())
                     {
-                        if (questions.ElementAt(i).answers.ElementAt(c - 97).correct)
-                            points++;
+                        foreach(int answer in question.Answers)
+                        {
+                            if (questions.ElementAt(i).answers.ElementAt(answer).correct)
+                                points++;
+                        }
                     }
+                    i++;
                 }
 
                 Models.results result = new Models.results();
-                result.result = points;
-                result.test = id;
                 result.examinee = user;
+                result.result = points;
+                result.tests = test;
 
                 db.results.Add(result);
                 db.SaveChanges();

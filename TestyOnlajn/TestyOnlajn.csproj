@@ -203,7 +203,9 @@
       <DependentUpon>TestsDBModel.tt</DependentUpon>
     </Compile>
     <Compile Include="Models\QuestionSend.cs" />
+    <Compile Include="Models\QuestionsToCheck.cs" />
     <Compile Include="Models\QuestionsUpdate.cs" />
+    <Compile Include="Models\QuestionToCheck.cs" />
     <Compile Include="Models\results.cs">
       <DependentUpon>TestsDBModel.tt</DependentUpon>
     </Compile>

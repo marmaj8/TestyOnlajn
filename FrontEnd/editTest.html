@@ -17,11 +17,14 @@
     <script src="js/vue.js"> </script>
     <script src="config.js"> </script>
     <script src="js/qEdit.js"></script>
+    <script src="js/menuBar.js"></script>
 </head>
 
 <body>
     <div id="app">
         <div class="container">
+
+                <menu-bar></menu-bar>
 
             <h3>Edycja testu nr: {{testId}}</h3>
             <div id="testDesc">
@@ -101,6 +104,7 @@
             el: '#app',
             components: {
                 'question-card': qEdit,
+                'menu-bar': menuBar,
             },
             data: {
                 testId: 1,
@@ -156,9 +160,7 @@
                     }).done(function (data) {
                         var qNumber = 0;
 
-                        //for (var i=0; i < data.length; i++)
                         data.forEach(q => {
-                            //var q = data[i];
                             
                             var qtemp = { number: qNumber, question: q.Text, answersCount: q.AnswersCount, answers: []}
                             var aNumber = 0;
@@ -172,10 +174,10 @@
                             qNumber++;
                         })
                     }).fail(function (jqXHR, textStatus, errorThrown) {
-                        console.log(jqXHR)
+                        window.location.replace("TestList.html");
                     })
                 }).fail(function (jqXHR, textStatus, errorThrown) {
-                    console.log(jqXHR)
+                    window.location.replace("TestList.html");
                 })
             },
             methods: {
@@ -213,7 +215,7 @@
                     self.changeChangeStatus(0, 0, 0);
                     $.ajax({
                         type: "POST",
-                        url: backend + "/api/tests/UpdateDesc",
+                        url: backend + "/api/tests/UpdateDesc/",
                         headers: {
                             'Authorization': `Bearer ${sessionStorage.getItem("tokenKey")}`,
                             'Access-Control-Allow-Origin': '*'
@@ -222,8 +224,7 @@
 
                         data: JSON.stringify({ "Id": self.testId, "Name": self.testName, "Desc": self.testDescription }),
                         contentType: 'application/json; charset=utf-8',
-                        dataType: 'json'
-
+                        dataType: 'json',
                     }).done(function () {
                         self.changeChangeStatus(0, -1, 1);
                     }).fail(function (jqXHR, textStatus, errorThrown) {
@@ -264,8 +265,10 @@
                         q.answers.forEach(a =>{
                             var answer = { Id: a.number, Text: a.answer, Correct: a.correct }
                             answers.push(answer);
-                            if (answer.correct == true)
+                            if (answer.Correct == true)
+                            {
                                 correct++;
+                            }
                         })
                         var question = { TestId: this.testId, QuestionId: q.number, CorrectAnswers: correct, Answers: answers, Text: q.question }
                         questions.push(question);

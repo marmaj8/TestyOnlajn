@@ -22,7 +22,7 @@
     <div id="app">
         <div class="container">
             <div class="row justify-content-center align-items-center" style="height:100vh">
-                <div class="col-4">
+                <div class="col-5">
                     <div class="card">
                         <div class="card-body">
                             <div class="form-group">
@@ -34,8 +34,7 @@
                                 <input type="password" class="form-control" name="password"
                                     v-model="loginData.password">
                             </div>
-                            <button type="button" id="sendlogin" class="btn btn-primary" v-on:click="login">login
-                                {{test}}</button>
+                            <button type="button" id="sendlogin" class="btn btn-primary" v-on:click="login">Zaloguj</button>
                         </div>
                     </div>
                 </div>
@@ -53,7 +52,6 @@
                     password: "123456",
                     grant_type: "password"
                 },
-                test: ''
             },
             created: function () {
             },
