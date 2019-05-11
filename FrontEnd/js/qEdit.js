@@ -9,7 +9,7 @@ var qEdit = {
                 <span class="input-group-text" id="inputGroup-sizing-default">Pytanie</span>
             </div>
             <textarea class="form-control rounded-0" rows="3" maxlength="1000" resize="false" style="resize:none"
-                                v-model="question.question"></textarea>
+            placeholder="treść pytania" v-model="question.question"></textarea>
         </div>
     </div>
     `

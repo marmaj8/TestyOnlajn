@@ -33,7 +33,7 @@
                         <span class="input-group-text" id="inputGroup-sizing-default">Nazwa</span>
                     </div>
                     <input type="text" class="form-control" aria-label="Sizing example input"
-                        aria-describedby="inputGroup-sizing-default" v-model="testName">
+                        aria-describedby="inputGroup-sizing-default" placeholder="nazwa testu" v-model="testName">
                 </div>
 
                 <div class="input-group mb-3">
@@ -41,7 +41,7 @@
                         <span class="input-group-text" id="inputGroup-sizing-default">Opis</span>
                     </div>
                     <textarea class="form-control rounded-0" rows="5" maxlength="1000" resize="false"
-                        style="resize:none" v-model="testDescription"></textarea>
+                        style="resize:none" placeholder="opis testu" v-model="testDescription"></textarea>
                 </div>
                 <button class="btn btn-outline-secondary" type="button" id="button-addon2"
                     v-on:click="changeTestDesc()">Ustaw Nazwe i Opis</button>
@@ -60,11 +60,11 @@
                             <th style="width: 50px"></th>
 
                             <tr v-for="answer in question.answers">
-                                <td><input type="checkbox" aria-label="Checkbox for following text input"
+                                <td><input type="checkbox" aria-label="Zaznacz jeśli poprawna odpowiedź"
                                         class="align-middle" v-model="answer.correct"></td>
                                 <td>
                                     <textarea class="form-control rounded-0" rows="2" maxlength="1000" resize="false"
-                                        style="resize:none" v-model="answer.answer"></textarea></td>
+                                        style="resize:none" placeholder="treść odpowiedzi" v-model="answer.answer"></textarea></td>
                                 <td><button class="btn btn-outline-secondary" type="button" id="button-addon2"
                                         v-on:click="removeAnswer(question.number, answer.number)">Usuń</button></td>
                             </tr>
@@ -208,10 +208,7 @@
                 },
                 changeTestDesc: function () {
                     var self = this;
-
-                    var dataJSON = { "name": "test" }
-
-
+                    
                     self.changeChangeStatus(0, 0, 0);
                     $.ajax({
                         type: "POST",

@@ -34,11 +34,11 @@
                                             <div class="card-body">
                                                 <div class="form-group">
                                                     <p>Email</p>
-                                                    <input type="text" class="form-control" name="username" v-model="loginData.username">
+                                                    <input type="text" class="form-control" maxlength="50" name="username" v-model="loginData.username">
                                                 </div>
                                                 <div class="form-group">
                                                     <p>Hasło</p>
-                                                    <input type="password" class="form-control" name="password"
+                                                    <input type="password" class="form-control" maxlength="50" name="password"
                                                         v-model="loginData.password">
                                                 </div>
                                                 <button type="button" id="sendlogin" class="btn btn-primary" v-on:click="login">Zaloguj</button>
@@ -83,16 +83,16 @@
 
                     }).done(function (res) {
                         sessionStorage.setItem("tokenKey", res.access_token);
-                        //window.location.replace("testList.html");
-                        window.location.replace("test.html?id=1");
+                        window.location.replace("testList.html");
+                        //window.location.replace("test.html?id=1");
                     }).fail(function (jqXHR, textStatus, errorThrown) {
                         console.log(jqXHR.status);
-                        if (jqXHR == 400)
+                        if (jqXHR.status == 400)
                             alert("Nieprawidłowy email lub hasło");
-                        else if(jqXHR == 404)
+                        else if(jqXHR.status == 404 || jqXHR.status == 0)
                             alert("Nie można skomunikować się z serwerem")
                         else
-                            alert("Awaria");
+                            alert("Awaria Serwera");
                     })
                 }
             }

@@ -1,37 +1,149 @@
 <!DOCTYPE html>
 <html>
-<head>
-    <meta charset="utf-8" />
-    <title></title>
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
 
-    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
-    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
-    <script src="js/vue.js"> </script>
-    <script src="js/menuBar.js"></script>
-    <style>
-        .competence-high{
-            color: green;
-        }
-        
-        .competence-low{
-            color: red;
-        }
-    </style>
-</head>
+
+        <head>
+                <meta charset="utf-8" />
+                <title>Dane Testu</title>
+                <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css"
+                    integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+            
+                <script src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
+                <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"
+                    integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q"
+                    crossorigin="anonymous"></script>
+                <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"
+                    integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl"
+                    crossorigin="anonymous"></script>
+                <script src="js/vue.js"> </script>
+                <script src="config.js"> </script>
+                <script src="js/menuBar.js"></script>
+            </head>
+
 <body>
-    <script>   
 
-    var app = new Vue({
-        el: '#app',
-        components: {
-                'menu-bar': menuBar,
-        },
-        data: {
-           searchText: "", 
-        }
-    });
+
+    <div id="app">
+        <div class="container">
+
+            <menu-bar></menu-bar>
+
+            <div class="jumbotron jumbotron-fluid">
+
+                <div class="input-group mb-3 sticky-top">
+                    <input v-model="searchName" type="text" class="form-control" maxlength="100" placeholder="nazwa testu"
+                        @keyup.enter="search">
+                </div>
+                <div class="input-group mb-3 sticky-top">
+                    <input v-model="serchAurhor" type="text" class="form-control" maxlength="50" placeholder="autor testu"
+                        @keyup.enter="search">
+                </div>
+
+
+                <ul class="list-group">
+                    <li class="list-group-item disabled" aria-disabled="true" v-for="test in filteredTests">
+                        <div @dblclick="goToTest(test.Id)">
+                                <h4>{{test.Name}}</h4>
+                                <h6>{{test.Author}}</h6>
+                                <p>{{test.Description.substr(0,100)}}</p>
+                                <h6>
+                                    Pytań: {{test.Questions}} | 
+                                    <span v-if="maked(test)" v-bind:style="{color: resultColor(test)}">Twój Wynik: {{test.Result}} / </span>
+                                    <span v-else>Punktów: </span>{{test.Points}}
+                                </h6>
+                        </div>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <script>
+
+        var app = new Vue({
+            el: '#app',
+            components: {
+                'menu-bar': menuBar
+            },
+            computed: {
+                filteredTests: function(){
+                    var tests = this.tests;
+                    var searchName = this.searchName;
+                    var serchAurhor = this.serchAurhor;
+                    
+                    tests = tests.filter( test => {
+                        return test.Author.toLowerCase().includes(serchAurhor.toLowerCase());
+                    }); 
+                    return tests.filter( test => {
+                        return test.Name.toLowerCase().includes(searchName.toLowerCase());
+                    }); 
+                }
+            },
+            data: {
+                searchName: "",
+                serchAurhor:"",
+
+                tests: [
+                    /*
+                    { Id: 1, Name: 'test1', Description: 'bla bla bla bal', Author: 'zeke', Questions: 4, Points: 5, Result: -1, IsYour: true},
+                    { Id: 3, Name: 'test2', Description: 'bla bla bla bal', Author: 'rike', Questions: 15, Points: 15, Result: 10, IsYour: false},
+                    */
+                ]
+            },
+            created: function () {
+                var self = this;
+                $.ajax({
+                    type: "GET",
+                    url: backend + "/api/tests/List/",
+                    headers: {
+                        'Authorization': `Bearer ${sessionStorage.getItem("tokenKey")}`,
+                        'Access-Control-Allow-Origin': '*'
+                    },
+                    timeout: 5000,
+
+
+                }).done(function (result) {
+                    self.tests = result;
+                    /*
+                    self.testName = result.Name;
+                    self.testDescription = result.Description;
+                    self.testAuthor = result.Author;
+                    self.questionsNumber = result.Questions;
+                    self.testPoints = result.Points;
+                    self.yourResult = result.Result;
+                    self.isYour = result.IsYour;
+                    */
+                }).fail(function (jqXHR, textStatus, errorThrown) {
+                    window.location.replace("index.html");
+                })
+            },
+            methods: {
+                
+                maked: function(test){
+                    if (test.Result == -1)
+                    {
+                        return false;
+                    }
+                    return true;
+                },
+                resultColor: function(test){
+                    var res = test.Result / test.Points;
+                    if (res < 0.3)
+                        return "red";
+                    if (res < 0.5)
+                        return "orange";
+                    if (res < 0.8)
+                        return "green";
+                    if (res == 1)
+                        return "purple";
+                    return "blue";
+                },
+                goToTest: function(id){
+                    window.location.replace("test.html?id="+id);
+                },
+            }
+        });
     </script>
 </body>
+
 </html>

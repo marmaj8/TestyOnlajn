@@ -19,8 +19,7 @@ var menuBar = {
   },
   methods: {
     testsList: function(){
-      //window.location.replace("testList.html");
-      window.location.replace("");
+      window.location.replace("testList.html");
     },
     logOut: function(){
       sessionStorage.removeItem("tokenKey");

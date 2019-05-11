@@ -194,6 +194,7 @@
     <Compile Include="Areas\HelpPage\XmlDocumentationProvider.cs" />
     <Compile Include="Controllers\AnswersController.cs" />
     <Compile Include="Controllers\QuestionsController.cs" />
+    <Compile Include="Controllers\ResultsController.cs" />
     <Compile Include="Controllers\TestsController.cs" />
     <Compile Include="Models\answers.cs">
       <DependentUpon>TestsDBModel.tt</DependentUpon>
@@ -209,6 +210,7 @@
     <Compile Include="Models\results.cs">
       <DependentUpon>TestsDBModel.tt</DependentUpon>
     </Compile>
+    <Compile Include="Models\ResultsSend.cs" />
     <Compile Include="Models\TestCreate.cs" />
     <Compile Include="Models\TestQuestionsUpdate.cs" />
     <Compile Include="Models\TestQuestionUpdate.cs" />
