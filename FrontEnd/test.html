@@ -132,7 +132,7 @@
                 self.testId = self.getQueryVariable("id")
                 $.ajax({
                     type: "GET",
-                    url: backend + "/api/tests/Get/" + self.testId,
+                    url: backend + "/api/get/" + self.testId,
                     headers: {
                         'Authorization': `Bearer ${sessionStorage.getItem("tokenKey")}`,
                         'Access-Control-Allow-Origin': '*'
@@ -152,7 +152,7 @@
                     
                     $.ajax({
                         type: "GET",
-                        url: backend + "/api/results/List/" + self.testId,
+                        url: backend + "/api/results/" + self.testId,
                         headers: {
                             'Authorization': `Bearer ${sessionStorage.getItem("tokenKey")}`,
                             'Access-Control-Allow-Origin': '*'
@@ -163,7 +163,8 @@
                     }).fail(function (jqXHR, textStatus, errorThrown) {
                     })
                 }).fail(function (jqXHR, textStatus, errorThrown) {
-                    window.location.replace("TestList.html");
+                    console.log(jqXHR);
+                    //window.location.replace("TestList.html");
                 })
             },
             methods: {

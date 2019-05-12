@@ -5,9 +5,11 @@ using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
 using System.Web.Http.Cors;
+using System.Web.Mvc;
 
 namespace TestyOnlajn.Provider
 {
+    [RequireHttps]
     [EnableCors(origins: "*", headers: "*", methods: "*")]
     public class SimpleAuthorizationServerProvider : OAuthAuthorizationServerProvider
     {

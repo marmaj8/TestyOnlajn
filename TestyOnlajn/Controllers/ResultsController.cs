@@ -9,6 +9,7 @@ using System.Web.Http.Cors;
 
 namespace TestyOnlajn.Controllers
 {
+    [System.Web.Mvc.RequireHttps]
     [EnableCors(origins: "*", headers: "*", methods: "*")]
     public class ResultsController : ApiController
     {
@@ -26,6 +27,9 @@ namespace TestyOnlajn.Controllers
 
                 var test = db.tests.First(t => t.id == id);
 
+                if (test == null)
+                    return Content(HttpStatusCode.BadRequest, "Nie istnieje test o nr " + id);
+
                 if (test.UserLogin.Id == user)
                 {
                     List<Models.ResultsSend> results = new List<Models.ResultsSend>();
@@ -42,7 +46,7 @@ namespace TestyOnlajn.Controllers
                     return Ok(results);
                 }
                 else
-                    return Unauthorized();
+                    return Content(HttpStatusCode.Unauthorized, "Nie możesz edytować tego testu");
             }
             catch
             {

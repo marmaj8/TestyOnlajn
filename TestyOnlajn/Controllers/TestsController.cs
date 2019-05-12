@@ -9,6 +9,7 @@ using System.Web.Http.Cors;
 
 namespace TestyOnlajn.Controllers
 {
+    [System.Web.Mvc.RequireHttps]
     [EnableCors(origins: "*", headers: "*", methods: "*")]
     public class TestsController : ApiController
     {
@@ -57,7 +58,7 @@ namespace TestyOnlajn.Controllers
             }
         }
 
-        [HttpPost]
+        [HttpPut]
         [Authorize]
         public IHttpActionResult Create(Models.TestCreate data)
         {
@@ -65,17 +66,29 @@ namespace TestyOnlajn.Controllers
             {
                 User = System.Web.HttpContext.Current.User;
                 Models.tests test = new Models.tests();
-                test.name = data.Name;
-                test.descript = data.Desc;
+
+                try
+                {
+                    test.name = data.Name;
+                    test.descript = data.Desc;
+                }
+                catch
+                {
+                    return Content(HttpStatusCode.BadRequest, "Przesłano wadliwe dane");
+                }
 
                 int author;
                 int.TryParse(((ClaimsIdentity)User.Identity).Claims.First(c => c.Type == "Id").Value, out author);
                 test.author = author;
-
+                
                 db.tests.Add(test);
                 db.SaveChanges();
 
                 return Ok(test.id);
+            }
+            catch (System.Data.Entity.Validation.DbEntityValidationException e)
+            {
+                return Content(HttpStatusCode.BadRequest, "Wprowadzone dane nie mogą zostać zapisane");
             }
             catch
             {
@@ -91,9 +104,13 @@ namespace TestyOnlajn.Controllers
             {
                 Models.tests test = db.tests.First(t => t.id == data.Id);
 
+                if (test == null)
+                    return Content(HttpStatusCode.BadRequest, "Nie istnieje test o nr " + data.Id);
+
                 int author;
                 int.TryParse(((ClaimsIdentity)User.Identity).Claims.First(c => c.Type == "Id").Value, out author);
 
+                
                 if (author == test.author)
                 {
                     if (data.Name != null)
@@ -105,7 +122,11 @@ namespace TestyOnlajn.Controllers
                     return Ok();
                 }
                 else
-                    return Unauthorized();
+                    return Content(HttpStatusCode.Unauthorized, "Nie możesz edytować tego testu");
+            }
+            catch (System.Data.Entity.Validation.DbEntityValidationException e)
+            {
+                return Content(HttpStatusCode.BadRequest, "Wprowadzone dane nie mogą zostać zapisane");
             }
             catch
             {
@@ -120,6 +141,9 @@ namespace TestyOnlajn.Controllers
             try
             {
                 Models.tests test = db.tests.First(t => t.id == data.TestId);
+
+                if (test == null)
+                    return Content(HttpStatusCode.BadRequest, "Nie istnieje test o nr " + data.TestId);
 
                 int author;
                 int.TryParse(((ClaimsIdentity)User.Identity).Claims.First(c => c.Type == "Id").Value, out author);
@@ -170,7 +194,11 @@ namespace TestyOnlajn.Controllers
                     return Ok();
                 }
                 else
-                    return Unauthorized();
+                    return Content(HttpStatusCode.Unauthorized, "Nie możesz edytować tego testu");
+            }
+            catch (System.Data.Entity.Validation.DbEntityValidationException e)
+            {
+                return Content(HttpStatusCode.BadRequest, "Wprowadzone dane są niepoprawne");
             }
             catch
             {
@@ -188,6 +216,10 @@ namespace TestyOnlajn.Controllers
                 int.TryParse(((ClaimsIdentity)User.Identity).Claims.First(c => c.Type == "Id").Value, out user);
 
                 var test = db.tests.First(t => t.id == id);
+
+                if (test == null)
+                    return Content(HttpStatusCode.BadRequest, "Nie istnieje test o nr "+id);
+
                 int questions = 0;
                 int points = 0;
 
@@ -223,6 +255,9 @@ namespace TestyOnlajn.Controllers
             try
             {
                 Models.tests test = db.tests.First(t => t.id == id);
+                
+                if (test == null)
+                    return Content(HttpStatusCode.BadRequest, "Nie istnieje test o nr " + id);
 
                 int author;
                 int.TryParse(((ClaimsIdentity)User.Identity).Claims.First(c => c.Type == "Id").Value, out author);
@@ -260,7 +295,7 @@ namespace TestyOnlajn.Controllers
                     return Ok();
                 }
                 else
-                    return Unauthorized();
+                    return Content(HttpStatusCode.Unauthorized, "Nie możesz usuwać tego testu");
             }
             catch
             {

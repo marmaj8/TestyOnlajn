@@ -149,7 +149,7 @@
 
                     $.ajax({
                     type: "GET",
-                    url: backend + "/api/questions/List/" + self.testId,
+                    url: backend + "/api/questions/" + self.testId,
                     headers: {
                         'Authorization': `Bearer ${sessionStorage.getItem("tokenKey")}`,
                         'Access-Control-Allow-Origin': '*'
@@ -212,7 +212,7 @@
                     self.changeChangeStatus(0, 0, 0);
                     $.ajax({
                         type: "POST",
-                        url: backend + "/api/tests/UpdateDesc/",
+                        url: backend + "/api/Update/",
                         headers: {
                             'Authorization': `Bearer ${sessionStorage.getItem("tokenKey")}`,
                             'Access-Control-Allow-Origin': '*'
@@ -221,7 +221,6 @@
 
                         data: JSON.stringify({ "Id": self.testId, "Name": self.testName, "Desc": self.testDescription }),
                         contentType: 'application/json; charset=utf-8',
-                        dataType: 'json',
                     }).done(function () {
                         self.changeChangeStatus(0, -1, 1);
                     }).fail(function (jqXHR, textStatus, errorThrown) {
@@ -273,7 +272,7 @@
 
                     $.ajax({
                         type: "POST",
-                        url: backend + "/api/tests/UpdateQuestions",
+                        url: backend + "/api/UpdateQuestions",
                         headers: {
                             'Authorization': `Bearer ${sessionStorage.getItem("tokenKey")}`,
                             'Access-Control-Allow-Origin': '*'
@@ -284,8 +283,7 @@
                             "TestId": self.testId,
                             "Questions": questions
                         }),
-                        contentType: 'application/json; charset=utf-8',
-                        dataType: 'json'
+                        contentType: 'application/json; charset=utf-8'
                     }).done(function () {
                         self.changeChangeStatus(1, -1, 1);
                     }).fail(function (jqXHR, textStatus, errorThrown) {
@@ -298,7 +296,7 @@
                     var self = this;
                     $.ajax({
                         type: "POST",
-                        url: backend + "/api/tests/Delete/"+self.testId,
+                        url: backend + "/api/Delete/"+self.testId,
                         headers: {
                             'Authorization': `Bearer ${sessionStorage.getItem("tokenKey")}`,
                             'Access-Control-Allow-Origin': '*'

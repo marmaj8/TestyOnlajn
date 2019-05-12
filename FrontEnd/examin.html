@@ -59,7 +59,7 @@
                 self.testId = self.getQueryVariable("id")
                 $.ajax({
                     type: "GET",
-                    url: backend + "/api/questions/ListToDo/" + self.testId,
+                    url: backend + "/api/Examin/" + self.testId,
                     headers: {
                         'Authorization': `Bearer ${sessionStorage.getItem("tokenKey")}`,
                         'Access-Control-Allow-Origin': '*'
@@ -139,7 +139,7 @@
                     console.log(JSON.stringify(dataSend));
                                         $.ajax({
                                             type: "POST",
-                                            url: backend + "/api/Questions/Rate",
+                                            url: backend + "/api/Rate",
                                             headers: {
                                                 'Authorization': `Bearer ${sessionStorage.getItem("tokenKey")}`,
                                                 'Access-Control-Allow-Origin': '*'

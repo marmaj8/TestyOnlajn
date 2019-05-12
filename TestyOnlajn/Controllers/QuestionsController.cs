@@ -9,6 +9,7 @@ using System.Web.Http.Cors;
 
 namespace TestyOnlajn.Models
 {
+    [System.Web.Mvc.RequireHttps]
     [EnableCors(origins: "*", headers: "*", methods: "*")]
     public class QuestionsController : ApiController
     {
@@ -25,9 +26,12 @@ namespace TestyOnlajn.Models
                 int.TryParse(((ClaimsIdentity)User.Identity).Claims.First(c => c.Type == "Id").Value, out user);
                 var test = db.tests.First(t => t.id == id);
 
+                if (test == null)
+                    return Content(HttpStatusCode.BadRequest, "Nie istnieje test o nr " + id);
+
                 if (test.author != user)
                 {
-                    return Unauthorized();
+                    return Content(HttpStatusCode.Unauthorized, "Nie masz dostępu do pytań z odpowiedziami");
                 }
 
                 List<Models.QuestionSend> questionsSend = new List<QuestionSend>();
@@ -57,6 +61,9 @@ namespace TestyOnlajn.Models
             try
             {
                 var test = db.tests.First(t => t.id == id);
+
+                if (test == null)
+                    return Content(HttpStatusCode.BadRequest, "Nie istnieje test o nr " + id);
 
                 List<Models.QuestionSend> questionsSend = new List<QuestionSend>();
 
@@ -91,6 +98,9 @@ namespace TestyOnlajn.Models
                 }
                 var question = questions.ElementAt(number);
 
+                if (question == null)
+                    return Content(HttpStatusCode.BadRequest, "Nie istnieje pytanie nr " + number + "testu nr " + test);
+
                 List<Models.AnswerSend> answers = new List<AnswerSend>();
                 foreach (Models.answers answer in db.answers.Where(a => a.question == question.id))
                 {
@@ -118,12 +128,16 @@ namespace TestyOnlajn.Models
                 var results = db.results.Where(r => r.test == data.Id && r.examinee == user);
                 if (results.Count() > 0)
                 {
-                    return Unauthorized();
+                    return Content(HttpStatusCode.Unauthorized, "Nie możesz ponownie wykonać testu");
                 }
 
                 int points = 0;
 
                 var test = db.tests.First(t => t.id == data.Id);
+
+                if (test == null)
+                    return Content(HttpStatusCode.BadRequest, "Nie istnieje test o nr " + data.Id);
+
                 var questions = test.questions;
 
                 int i = 0;

@@ -9,6 +9,7 @@ using System.Web.Http.Cors;
 
 namespace TestyOnlajn.Controllers
 {
+    [System.Web.Mvc.RequireHttps]
     [EnableCors(origins: "*", headers: "*", methods: "*")]
     public class AnswersController : ApiController
     {
@@ -16,7 +17,6 @@ namespace TestyOnlajn.Controllers
 
         [HttpPost]
         [Authorize]
-        //public int Create(int question, string txt, Boolean correct = false)
         public IHttpActionResult Create(Models.AnswerSend data)
         {
             try
@@ -35,7 +35,11 @@ namespace TestyOnlajn.Controllers
                     return Ok();
                 }
                 else
-                    return Unauthorized();
+                    return Content(HttpStatusCode.Unauthorized, "Nie możesz dodawać pytań do tego testu");
+            }
+            catch (System.Data.Entity.Validation.DbEntityValidationException e)
+            {
+                return Content(HttpStatusCode.BadRequest, "Wprowadzone dane są niepoprawne");
             }
             catch
             {
@@ -54,6 +58,10 @@ namespace TestyOnlajn.Controllers
                 int.TryParse(((ClaimsIdentity)User.Identity).Claims.First(c => c.Type == "Id").Value, out user);
 
                 Models.answers answer = db.answers.First(q => q.id == id);
+
+                if (answer == null)
+                    return Content(HttpStatusCode.BadRequest, "Nie istnieje odpoweidź o nr " + id);
+
                 if (answer.questions.tests.UserLogin.Id == user)
                 {
                     db.answers.Remove(answer);
@@ -61,7 +69,7 @@ namespace TestyOnlajn.Controllers
                     return Ok();
                 }
                 else
-                    return Unauthorized();
+                    return Content(HttpStatusCode.Unauthorized, "Nie możesz usunąć tej odpowiedzi");
             }
             catch
             {

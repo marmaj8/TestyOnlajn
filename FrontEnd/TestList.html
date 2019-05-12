@@ -94,7 +94,7 @@
                 var self = this;
                 $.ajax({
                     type: "GET",
-                    url: backend + "/api/tests/List/",
+                    url: backend + "/api/Get",
                     headers: {
                         'Authorization': `Bearer ${sessionStorage.getItem("tokenKey")}`,
                         'Access-Control-Allow-Origin': '*'
